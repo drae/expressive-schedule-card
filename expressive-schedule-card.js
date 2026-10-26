@@ -190,6 +190,7 @@ class ExpressiveScheduleCard extends HTMLElement {
     this._days = this._saved = null;
     this._sel = { day: this._today(), i: 0 };
     this._render();
+    if (this._hass) this._load();
   }
 
   set hass(hass) {
