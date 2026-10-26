@@ -65,6 +65,10 @@ const msg = (el) => $(el, ".acts .msg").textContent.trim();
   ok($$(el, ".day").length === 7, "seven day rows");
   ok($$(el, ".day")[0].querySelector(".dl").textContent === "Mon", "rows start on Monday, named from the locale");
   ok(msg(el) === "No changes" && $(el, '[data-act="save"]').disabled, "nothing to save at first");
+  el._barW = 640; el._render();
+  ok($$(el, '.day[data-d="0"] .seg')[2].textContent === "18.5°" && $$(el, '.day[data-d="0"] .seg')[1].textContent === "19.5°", "blocks with room show their temperature");
+  el._barW = 300; el._render();
+  ok($$(el, '.day[data-d="0"] .seg')[1].textContent === "" && $$(el, '.day[data-d="0"] .seg')[2].textContent === "18.5°", "narrow blocks drop it");
   ok($$(el, ".axis span").length === 9 && $$(el, ".axis .minor").length === 4, "axis every 3 h, the in-betweens droppable");
 
   // select Monday 09:00 block and edit

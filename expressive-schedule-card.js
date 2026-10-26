@@ -217,6 +217,7 @@ class ExpressiveScheduleCard extends HTMLElement {
     this._guards(false);
     clearInterval(this._clock);
     this._clock = null;
+    this._ro?.disconnect();
     this._endDrag?.();
   }
 
@@ -391,7 +392,9 @@ class ExpressiveScheduleCard extends HTMLElement {
       const fill = was.has(`${g.s}-${g.e}-${g.t}`) ? base : `color-mix(in srgb, ${base} 80%, #fff)`;
       const l = g.i ? cut : "0px", r = g.e < DAY ? cut : "0px";
       const cls = `seg${g.i === 0 ? " first" : ""}${g.e === DAY ? " last" : ""}${g.i === sel ? " sel" : ""}`;
-      h += `<div class="${cls}" data-i="${g.i}" style="left:calc(${pct(g.s)} + ${l});width:max(0px, calc(${pct(g.e - g.s)} - ${l} - ${r}));background:${fill}"></div>`;
+      // The temperature shows when the block has room for it (about 32px).
+      const label = ((g.e - g.s) / DAY) * (this._barW ?? 480) >= 32 ? this._t(g.t) : "";
+      h += `<div class="${cls}" data-i="${g.i}" style="left:calc(${pct(g.s)} + ${l});width:max(0px, calc(${pct(g.e - g.s)} - ${l} - ${r}));background:${fill}">${label}</div>`;
     }
     if (d === this._today()) h += `<div class="now" style="left:${pct(this._nowMin())}"></div>`;
     h += "</div>";
@@ -455,6 +458,22 @@ class ExpressiveScheduleCard extends HTMLElement {
         <button class="chip save" data-act="save" ${dirty && !blocked && !this._saving ? "" : "disabled"}>Save</button></div>`;
     if (ask) this._card.append(ask);
     this._wire();
+    this._measure();
+  }
+
+  // Bar width decides which blocks are wide enough for their temperature; re-render when it changes.
+  _measure() {
+    const bar = this._card.querySelector(".bar");
+    if (!bar || !window.ResizeObserver) return;
+    this._ro ??= new ResizeObserver(() => {
+      const wd = Math.round(this._card.querySelector(".bar")?.getBoundingClientRect().width ?? 0);
+      if (wd && wd !== this._barW && !this._drag) {
+        this._barW = wd;
+        this._render();
+      }
+    });
+    this._ro.disconnect();
+    this._ro.observe(bar);
   }
 
   _wire() {
